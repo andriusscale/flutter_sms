@@ -18,8 +18,6 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import io.flutter.plugin.common.PluginRegistry.Registrar
-
 
 class FlutterSmsPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
   private lateinit var mChannel: MethodChannel
@@ -42,11 +40,11 @@ class FlutterSmsPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
     activity = binding.activity
   }
 
-  override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+  override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     setupCallbackChannels(flutterPluginBinding.binaryMessenger)
   }
 
-  override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
+  override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
     teardown()
   }
 
@@ -57,17 +55,6 @@ class FlutterSmsPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
 
   private fun teardown() {
     mChannel.setMethodCallHandler(null)
-  }
-
-  // V1 embedding entry point. This is deprecated and will be removed in a future Flutter
-  // release but we leave it here in case someone's app does not utilize the V2 embedding yet.
-  companion object {
-    @JvmStatic
-    fun registerWith(registrar: Registrar) {
-      val inst = FlutterSmsPlugin()
-      inst.activity = registrar.activity()
-      inst.setupCallbackChannels(registrar.messenger())
-    }
   }
 
   override fun onMethodCall(call: MethodCall, result: Result) {
@@ -83,14 +70,13 @@ class FlutterSmsPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
           val message = call.argument<String?>("message") ?: ""
           val recipients = call.argument<String?>("recipients") ?: ""
           val sendDirect = call.argument<Boolean?>("sendDirect") ?: false
-          sendSMS(result, recipients, message!!, sendDirect)
+          sendSMS(result, recipients, message, sendDirect)
         }
         "canSendSMS" -> result.success(canSendSMS())
         else -> result.notImplemented()
     }
   }
 
-  @TargetApi(Build.VERSION_CODES.ECLAIR)
   private fun canSendSMS(): Boolean {
     if (!activity!!.packageManager.hasSystemFeature(PackageManager.FEATURE_TELEPHONY))
       return false
